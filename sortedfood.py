@@ -29,20 +29,42 @@ def retrieve_recipe_page(page_name):
         return ""
 
 
+def parse_ingredients(expansion_body):
+    headings = [p.text for p in expansion_body.find_all("p")[:-1]]
+    lists = expansion_body.find_all("ul")
+    lists = [[li.text for li in ul.find_all("li")] for ul in lists]
+    if len(headings) == len(lists):
+        return dict(zip(headings, lists))
+    else:
+        return {"main": lists[0]}
+
+
+def parse_instructions(expansion_body):
+    try:
+        instructions = expansion_body.find_all("p")[-1].text.split("\n\n")
+        return instructions[0]
+    except IndexError:
+        return ""
+
+
+def parse_portions(expansion_body):
+    try:
+        instructions = expansion_body.find_all("p")[-1].text.split("\n\n")
+        return instructions[1]
+    except IndexError:
+        return ""
+
+
 def parse_recipe_page(page_name, page):
     store = {}
     soup = bs4.BeautifulSoup(page)
     store["title"] = soup.find(id="titleLink").text
     store["name"] = page_name
     store["bodyText"] = soup.find(id="pageBodyText").text
-    store["ingredients"] = [li.text for li in soup.find(
-                            id="expansionMoreBody").ul.find_all("li")]
-    instructions = soup.find(id="expansionMoreBody").p.text.split("\n\n")
-    if len(instructions) == 2:
-        store["instructions"] = instructions[0]
-        store["portions"] = instructions[1]
-    elif len(instructions) == 1:
-        store["instuctions"] = instructions[0]
+    expansion_body = soup.find(id="expansionMoreBody")
+    store["ingredients"] = parse_ingredients(expansion_body)
+    store["instructions"] = parse_instructions(expansion_body)
+    store["portions"] = parse_portions(expansion_body)
     return store
 
 
