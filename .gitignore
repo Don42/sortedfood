@@ -52,3 +52,11 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# vim swp files
+*.swp
+
+# hidden files
+.*
+
+# core dumps
+core
