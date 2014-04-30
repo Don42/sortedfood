@@ -9,7 +9,7 @@
 """sortedfood fetches recipies from sortedfood.com.
 
 Usage:
-    sortedfood.py
+    sortedfood.py <pageName>
 
 """
 
@@ -54,11 +54,13 @@ def extract_recipe_links(recipe_page):
 
 
 def main(args):
-    response = retrieve_recipe_page("katsucurry")
-    recipe = parse_recipe_page("katsucurry", response)
-    further_links = extract_recipe_links(response)
-    pprint.pprint(recipe)
-    pprint.pprint(further_links)
+    if("<pageName>" in arguments):
+        pageName = arguments["<pageName>"]
+        response = retrieve_recipe_page(pageName)
+        recipe = parse_recipe_page(pageName, response)
+        further_links = extract_recipe_links(response)
+        pprint.pprint(recipe)
+        pprint.pprint(further_links)
 
 
 if __name__ == "__main__":
