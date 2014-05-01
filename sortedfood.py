@@ -35,7 +35,8 @@ def retrieve_recipe_page(page_name):
 def parse_ingredients(expansion_body):
     headings = [p.get_text() for p in expansion_body.find_all("p")[:-1]]
     lists = expansion_body.find_all("ul")
-    lists = [[li.get_text() for li in ul.find_all("li")] for ul in lists]
+    clean_item = lambda x: x.get_text().strip()
+    lists = [[clean_item(li) for li in ul.find_all("li")] for ul in lists]
     if len(headings) == len(lists):
         return dict(zip(headings, lists))
     elif len(lists) > 0:
@@ -46,14 +47,14 @@ def parse_ingredients(expansion_body):
 
 def parse_instructions(expansion_body):
     try:
-        return expansion_body.find_all("p")[-1].get_text().split("\n\n")[0]
+        return expansion_body.find_all("p")[-1].get_text().split("\n")[:-1]
     except IndexError:
         raise Exception("ParseError in instructions")
 
 
 def parse_portions(expansion_body):
     try:
-        return expansion_body.find_all("p")[-1].get_text().split("\n\n")[1]
+        return expansion_body.find_all("p")[-1].get_text().split("\n")[-1]
     except IndexError:
         raise Exception("ParseError in portions")
 
