@@ -23,6 +23,7 @@ def retrieve_recipe_page(page_name):
     response = requests.get(
         "http://sortedfood.com/support/client/ajax/pageload.php?" +
         "page={0}".format(page_name))
+    response.encoding = "utf-8"
     if response.status_code == 200:
         return response.text
     else:
@@ -55,7 +56,7 @@ def parse_portions(expansion_body):
 
 def parse_recipe_page(page_name, page):
     store = {}
-    soup = bs4.BeautifulSoup(page)
+    soup = bs4.BeautifulSoup(page, from_encoding='utf-8')
     store["title"] = soup.find(id="titleLink").get_text()
     store["name"] = page_name
     store["bodyText"] = soup.find(id="pageBodyText").get_text()
