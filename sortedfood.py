@@ -38,22 +38,24 @@ def parse_ingredients(expansion_body):
     lists = [[li.get_text() for li in ul.find_all("li")] for ul in lists]
     if len(headings) == len(lists):
         return dict(zip(headings, lists))
-    else:
+    elif len(lists) > 0:
         return {"main": lists[0]}
+    else:
+        raise Exception("ParseError in Ingredients")
 
 
 def parse_instructions(expansion_body):
     try:
         return expansion_body.find_all("p")[-1].get_text().split("\n\n")[0]
     except IndexError:
-        return ""
+        raise Exception("ParseError in instructions")
 
 
 def parse_portions(expansion_body):
     try:
         return expansion_body.find_all("p")[-1].get_text().split("\n\n")[1]
     except IndexError:
-        return ""
+        raise Exception("ParseError in portions")
 
 
 def parse_recipe_page(page_name, page):
@@ -72,7 +74,7 @@ def parse_recipe_page(page_name, page):
 def extract_recipe_links(recipe_page):
     soup = bs4.BeautifulSoup(recipe_page)
     links = soup.find_all("a")
-    link_filter = lambda x: x["class"] == ["active"]
+    link_filter = lambda x: x.get("class", "") == ["active"]
     return [a["href"].replace("/", "") for a in links if link_filter(a)]
 
 
