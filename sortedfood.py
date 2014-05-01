@@ -9,7 +9,7 @@
 """sortedfood fetches recipies from sortedfood.com.
 
 Usage:
-    sortedfood.py <pageName>
+    sortedfood.py [<pageName>]
 
 """
 
@@ -18,13 +18,23 @@ import bs4
 import requests
 import pathlib as pl
 import json
-import pprint
 
 
 def retrieve_recipe_page(page_name):
     response = requests.get(
         "http://sortedfood.com/support/client/ajax/pageload.php?" +
         "page={0}".format(page_name))
+    response.encoding = "utf-8"
+    if response.status_code == 200:
+        return response.text
+    else:
+        return ""
+
+
+def retrieve_index_page(pagination_number):
+    response = requests.get(
+        "http://sortedfood.com/support/client/ajax/pageload.php?" +
+        "page=recipes&screen={0}".format(pagination_number))
     response.encoding = "utf-8"
     if response.status_code == 200:
         return response.text
@@ -42,21 +52,21 @@ def parse_ingredients(expansion_body):
     elif len(lists) > 0:
         return {"main": lists[0]}
     else:
-        raise Exception("ParseError in Ingredients")
+        raise Warning("ParseError in Ingredients")
 
 
 def parse_instructions(expansion_body):
     try:
         return expansion_body.find_all("p")[-1].get_text().split("\n")[:-1]
     except IndexError:
-        raise Exception("ParseError in instructions")
+        raise Warning("ParseError in instructions")
 
 
 def parse_portions(expansion_body):
     try:
         return expansion_body.find_all("p")[-1].get_text().split("\n")[-1]
     except IndexError:
-        raise Exception("ParseError in portions")
+        raise Warning("ParseError in portions")
 
 
 def parse_recipe_page(page_name, page):
@@ -93,15 +103,48 @@ def store_recipe(recipe, override=False):
             json.dump(recipe, f)
 
 
+def download_and_store_recipe(recipe_name):
+    response = retrieve_recipe_page(recipe_name)
+    recipe = parse_recipe_page(recipe_name, response)
+    store_recipe(recipe)
+
+
+def iterate_recipe_links():
+    screen = 1
+    while(True):
+        index_page = retrieve_index_page(screen)
+        soup = bs4.BeautifulSoup(index_page)
+        links = soup.find_all("a")
+        link_filter = lambda x: x.get("class", "") == ["active"]
+        clean_link = lambda x: x["href"].split("/")[-2]
+        links = [clean_link(a) for a in links if link_filter(a)]
+        if len(links) == 0:
+            raise StopIteration()
+        for link in links:
+            yield link
+        screen += 1
+
+
+def scrape_page():
+    print("Scraping site")
+    for link in iterate_recipe_links():
+        print("Loading recipe: {0}".format(link))
+        try:
+            download_and_store_recipe(link)
+        except AttributeError as e:
+            print("{0}: {1}".format(e, link))
+            continue
+        except Warning as e:
+            print("{0}: {1}".format(e, link))
+            continue
+
+
 def main(args):
-    if("<pageName>" in arguments):
+    if(arguments.get("<pageName>", None) is not None):
         pageName = arguments["<pageName>"]
-        response = retrieve_recipe_page(pageName)
-        recipe = parse_recipe_page(pageName, response)
-        further_links = extract_recipe_links(response)
-        pprint.pprint(recipe)
-        pprint.pprint(further_links)
-        store_recipe(recipe)
+        download_and_store_recipe(pageName)
+    else:
+        scrape_page()
 
 
 if __name__ == "__main__":
