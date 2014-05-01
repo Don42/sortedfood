@@ -98,9 +98,10 @@ def store_recipe(recipe, override=False):
             print("Could not create directory")
             return
     recipe_file = recipes_dir / recipe["name"]
+    recipe_file = recipe_file.with_suffix(".json")
     if override or not recipe_file.exists():
         with recipe_file.open(mode='w', encoding='utf-8') as f:
-            json.dump(recipe, f)
+            json.dump(recipe, f, indent=4)
 
 
 def download_and_store_recipe(recipe_name):
