@@ -16,6 +16,8 @@ Usage:
 import docopt as dopt
 import bs4
 import requests
+import pathlib as pl
+import json
 import pprint
 
 
@@ -74,6 +76,20 @@ def extract_recipe_links(recipe_page):
     return [a["href"].replace("/", "") for a in links if link_filter(a)]
 
 
+def store_recipe(recipe, override=False):
+    recipes_dir = pl.Path("./recipes")
+    if not recipes_dir.exists() or not recipes_dir.is_dir():
+        try:
+            recipes_dir.mkdir()
+        except pl.FileExistsError:
+            print("Could not create directory")
+            return
+    recipe_file = recipes_dir / recipe["name"]
+    if override or not recipe_file.exists():
+        with recipe_file.open(mode='w', encoding='utf-8') as f:
+            json.dump(recipe, f)
+
+
 def main(args):
     if("<pageName>" in arguments):
         pageName = arguments["<pageName>"]
@@ -82,6 +98,7 @@ def main(args):
         further_links = extract_recipe_links(response)
         pprint.pprint(recipe)
         pprint.pprint(further_links)
+        store_recipe(recipe)
 
 
 if __name__ == "__main__":
