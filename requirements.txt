@@ -1,0 +1,4 @@
+beautifulsoup4>=4.2.1
+docopt>=0.6.1
+pathlib>=1.0
+requests>=2.2.1
