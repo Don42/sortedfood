@@ -25,12 +25,15 @@ dump_json = functools.partial(json.dumps,
                               sort_keys=True)
 
 
-def retrieve_recipe_page(page_name, session=None):
+def get_recipe(page_name,
+               ingredients=True,
+               instructions=True,
+               session=None):
     if session is None:
         session = requests.Session()
     payload = {'recipeid':  page_name,
-               'getIngredients': 'true',
-               'getInstructions': 'true'}
+               'getIngredients': 'true' if ingredients else 'false',
+               'getInstructions': 'true' if instructions else 'false'}
     response = session.get('https://cms.sortedfood.com/apiRecipe/getRecipe',
                            params=payload)
     if response.status_code == 200:
@@ -46,8 +49,7 @@ def scrape_page():
 def main(args):
     if(arguments.get("<pageID>", None) is not None):
         page_id = int(arguments["<pageID>"])
-        print(dump_json(retrieve_recipe_page(page_id)))
-    else:
+        print(dump_json(get_recipe(page_id)))
         scrape_page()
 
 
