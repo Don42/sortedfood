@@ -46,7 +46,8 @@ def scrape_page():
     print("Scraping site")
 
 
-def main(args):
+def main():
+    arguments = dopt.docopt(__doc__)
     if(arguments.get("<pageID>", None) is not None):
         page_id = int(arguments["<pageID>"])
         print(dump_json(get_recipe(page_id)))
@@ -54,5 +55,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    arguments = dopt.docopt(__doc__)
-    main(arguments)
+    main()
