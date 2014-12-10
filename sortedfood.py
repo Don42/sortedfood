@@ -62,8 +62,29 @@ def get_categories():
     return categories
 
 
+def get_recipies_from_category(category, usertype=1, page=0, count=0):
+    session = requests.Session()
+    payload = {'categoryId': category,
+               'usertype': usertype,
+               'page': page,
+               'offset': count}
+    response = session.get(
+        'https://cms.sortedfood.com/apiRecipe/getFeaturedByUsertype',
+        params=payload)
+    if response.status_code == 200:
+        return json.loads(response.text)
+
+
 def scrape_page():
     print("Scraping site")
+
+
+def extract_recipe_ids(page):
+    recipes_list = page.get('recipe', list())
+    ids = set()
+    for recipe in recipes_list:
+        ids.add(recipe['recipe_id'])
+    return ids
 
 
 def main():
