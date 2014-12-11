@@ -19,6 +19,7 @@ import docopt as dopt
 import requests
 import json
 import functools
+import os
 
 
 dump_json = functools.partial(json.dumps,
@@ -77,6 +78,34 @@ def get_recipies_from_category(category, usertype=1, page=0, count=0):
 
 def scrape_page():
     print("Scraping site")
+    categories = get_categories()
+    recipe_ids = set()
+    cat_ids = sorted(categories.keys())
+    i = 1
+    for id in cat_ids:
+        print("Processing category {}/{}: {}".format(i, len(cat_ids), id))
+        i += 1
+        recipies = get_recipies_from_category(id)
+        recipe_ids.update(extract_recipe_ids(recipies))
+
+    print("Recipe IDs retrieved, starting download")
+    i = 1
+    for id in recipe_ids:
+        print("Processing {}/{}: {}".format(i, len(recipe_ids), id))
+        filename = "dump/{}.json".format(id)
+        i += 1
+        if os.path.isfile(filename):
+            print("File already exists\n")
+            continue
+
+        recipe = get_recipe(id)
+        if not recipe.get('successful', False):
+            print("Retieval failure\n")
+            continue
+        recipe = recipe['recipe']
+        print("Recipe: {}\n".format(recipe['title']))
+        with open(filename, 'w') as out_file:
+            out_file.write(dump_json(recipe))
 
 
 def extract_recipe_ids(page):
