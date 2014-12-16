@@ -6,6 +6,12 @@
 # this stuff is worth it, you can buy me a scotch whisky in return
 # Marco 'don' Kaulea
 # ----------------------------------------------------------------------------
+"""Bindings for the Web-API of sortedfood.com
+
+If speed is an issue a session can be reused by passing it to all used
+functions.
+
+"""
 
 import requests
 import json
