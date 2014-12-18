@@ -16,7 +16,7 @@ Usage:
 """
 
 import docopt as dopt
-# import requests
+import requests
 import json
 import functools
 import os
@@ -31,16 +31,17 @@ dump_json = functools.partial(json.dumps,
 
 def scrape_page():
     print("Scraping site")
-    categories = sf.get_categories()
+    session = requests.Session()
+    categories = sf.get_categories(session=session)
     recipe_ids = set()
     cat_ids = sorted(categories.keys())
     i = 1
     for id in cat_ids:
         print("Processing category {}/{}: {}".format(i, len(cat_ids), id))
         i += 1
-        recipe_ids.update(sf.get_recipe_ids_from_category(id))
+        recipe_ids.update(sf.get_recipe_ids_from_category(id, session=session))
 
-    print("Recipe IDs retrieved, starting download")
+    print("\nRecipe IDs retrieved, starting download")
     i = 1
     for id in recipe_ids:
         print("Processing {}/{}: {}".format(i, len(recipe_ids), id))
@@ -50,7 +51,7 @@ def scrape_page():
             print("File already exists\n")
             continue
 
-        recipe = sf.get_recipe(id)
+        recipe = sf.get_recipe(id, session=session)
         if not recipe.get('successful', False):
             print("Retieval failure\n")
             continue
