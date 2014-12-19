@@ -45,21 +45,34 @@ def scrape_page():
     i = 1
     for id in recipe_ids:
         print("Processing {}/{}: {}".format(i, len(recipe_ids), id))
-        filename = "dump/{}.json".format(id)
         i += 1
-        if os.path.isfile(filename):
-            print("File already exists\n")
-            continue
+        process_recipe_id(id)
 
-        recipe = sf.get_recipe(id, session=session)
-        if not recipe.get('successful', False):
-            print("Retieval failure\n")
-            continue
 
-        recipe = recipe['recipe']
-        print("Recipe: {}\n".format(recipe['title']))
-        with open(filename, 'w') as out_file:
-            out_file.write(dump_json(recipe))
+def process_recipe_id(id, session=None):
+    """Retrieve the recipe if it is not already stored
+
+    Args:
+        id (string): Numeric recipe id
+        session (Request.Session): HTTP session to be used for the request.
+            Defaults to None. When no session is provied a new one will be
+            created and used.
+
+    """
+    filename = "dump/{}.json".format(id)
+    if os.path.isfile(filename):
+        print("File already exists\n")
+        return
+
+    recipe = sf.get_recipe(id, session=session)
+    if not recipe.get('successful', False):
+        print("Retieval failure\n")
+        return
+
+    recipe = recipe['recipe']
+    print("Recipe: {}\n".format(recipe['title']))
+    with open(filename, 'w') as out_file:
+        out_file.write(dump_json(recipe))
 
 
 def main():
