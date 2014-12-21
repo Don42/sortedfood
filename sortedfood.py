@@ -19,6 +19,7 @@ import docopt as dopt
 import requests
 import json
 import functools
+import multiprocessing as mp
 import os
 import sortedfood_api as sf
 
@@ -35,11 +36,14 @@ def scrape_page():
     categories = sf.get_categories(session=session)
     recipe_ids = set()
     cat_ids = sorted(categories.keys())
+
     i = 1
-    for id in cat_ids:
-        print("Processing category {}/{}: {}".format(i, len(cat_ids), id))
-        i += 1
-        recipe_ids.update(sf.get_recipe_ids_from_category(id, session=session))
+    with mp.Pool(processes=6) as pool:
+        for ids in pool.imap_unordered(sf.get_recipe_ids_from_category,
+                                       cat_ids):
+            print("Processing category {}/{}.".format(i, len(cat_ids)))
+            i += 1
+            recipe_ids.update(ids)
 
     print("\nRecipe IDs retrieved, starting download")
     i = 1
