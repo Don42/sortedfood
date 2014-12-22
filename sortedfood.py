@@ -30,7 +30,12 @@ dump_json = functools.partial(json.dumps,
                               sort_keys=True)
 
 
-def scrape_page():
+def scrape_page(threads=6):
+    """Scrapes all recipes from sortedfood
+
+    Args:
+        threads (int): Number of threads to use to get recipe_ids
+    """
     print("Scraping site")
     session = requests.Session()
     categories = sf.get_categories(session=session)
@@ -38,7 +43,7 @@ def scrape_page():
     cat_ids = sorted(categories.keys())
 
     i = 1
-    with mp.Pool(processes=6) as pool:
+    with mp.Pool(processes=threads) as pool:
         for ids in pool.imap_unordered(sf.get_recipe_ids_from_category,
                                        cat_ids):
             print("Processing category {}/{}.".format(i, len(cat_ids)))
